@@ -9,6 +9,7 @@ from io import BytesIO
 from streamlit_autorefresh import st_autorefresh
 import platform
 import sys
+from twilio.rest import Client
 # 1. Safe refresh mechanism (replaces the broken 'while True' loop)
 # This forces Streamlit to safely check the clock every 10 seconds without freezing
 st_autorefresh(interval=10000, key="alarm_counter")
@@ -22,6 +23,7 @@ default_index = zones.index("Asia/Kolkata") if "Asia/Kolkata" in zones else 0
 timezone = st.selectbox("Choose your timezone 🌍", zones, index=default_index)
 patient_name = st.text_input("Enter patient's name")
 name = st.text_input("Enter medicine's name")
+number = st.text_input("Enter your phone number.")
 
 # Adjusted placeholder to show standard 12-hour formatting with leading zeroes ("08:30 PM")
 time_to_eat = st.text_input("Enter the time when you will eat the pill", placeholder="Ex: 08:30 PM")
@@ -85,20 +87,20 @@ if timezone and name and time_to_eat:
         if current_time.strip() == time_to_eat.strip():
             st.warning("⚠️ ALARM ACTIVE!")
 
-            # Injecting JavaScript to play audio directly on the user's browser
-            alarm_html = f"""
-            <audio autoplay loop>
-                <source src="{ALARM_SOUND_URL}" type="audio/mp3">
-            </audio>
-            """
-            st.components.v1.html(alarm_html, height=0, width=0)
-
+            twilio_account_sid = "ACb3719d7c54b575795c86315072d7b892"
+            twillio_account_token = "5ac3d7a69168ef3c564b1cc61bd894db"
             if result == "Did Not Eat":
                 text_to_speak = f"Please eat your medicine. It is {time_to_eat}."
-                tts = gTTS(text=text_to_speak, lang='en')
-                audio_buffer = BytesIO()
-                tts.write_to_fp(audio_buffer)
-                audio_buffer.seek(0)
+                client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+                twiml_instruction = f"<Response><Say voice='alice'>{text_to_speak}</Say></Response>"
+
+                # Pass the frontend text string variables straight into the API payload loop
+                call = client.calls.create(
+                    twiml=twiml_instruction,
+                    to=user_to_number.strip(),  # Injecting user string dynamically
+                    from_=MY_VERIFIED_NUMBER  # The caller ID MUST be your own verified number
+                )
 
                 # Added autoplay=True so text-to-speech outputs automatically
                 st.audio(audio_buffer, format='audio/mp3', autoplay=True)
