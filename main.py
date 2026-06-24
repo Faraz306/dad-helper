@@ -23,8 +23,6 @@ timezone = st.selectbox("Choose your timezone 🌍", zones, index=default_index)
 
 patient_name = st.text_input("Enter patient's name")
 name = st.text_input("Enter medicine's name")
-number = st.text_input("Enter your phone number.")
-
 # Adjusted placeholder to show standard 12-hour formatting with leading zeroes ("08:30 PM")
 time_to_eat = st.text_input("Enter the time when you will eat the pill", placeholder="Ex: 08:30 PM")
 
@@ -83,11 +81,6 @@ if timezone and name and time_to_eat:
     if current_time.strip() == time_to_eat.strip():
         st.warning("⚠️ ALARM ACTIVE!")
 
-        # Hardcoded credentials broken into fragments to bypass Git Push Blocks
-        twilio_account_sid = "ACb3719d7c54" + "b575795c86315072d7b892"
-        twilio_auth_token = "5ac3d7a6" + "9168ef3c564b1cc61bd894db"
-        my_num = "+919528375253"
-
         text_to_speak = f"Please eat your medicine {patient_name}. It is {time_to_eat}."
 
         # Fix: Generate the audio stream buffer using gTTS so st.audio doesn't crash
@@ -100,17 +93,15 @@ if timezone and name and time_to_eat:
         if result == "Did Not Eat":
             try:
                 # Corrected parameter cases
-                client = Client(twilio_account_sid, twilio_auth_token)
-                twiml_instruction = f"<Response><Say voice='alice'>{text_to_speak}</Say></Response>"
+                text_to_speak = f"Please eat your medicine {patient_name}. It is {time_to_eat}."
 
-                call = client.calls.create(
-                    twiml=twiml_instruction,
-                    to=number.strip(),
-                    from_=my_num
-                )
-                st.info(f"Call placed successfully! Call SID: {call.sid}")
-            except Exception as e:
-                st.error(f"Twilio Call Failed: {e}")
+                # Fix: Generate the audio stream buffer using gTTS so st.audio doesn't crash
+                tts = gTTS(text=text_to_speak, lang='en')
+                audio_buffer = BytesIO()
+                tts.write_to_fp(audio_buffer)
+                audio_buffer.seek(0)
+                st.audio(audio_buffer, format='audio/mp3', autoplay=True)
+
         else:
             if platform.system() == "Windows":
                 import winsound
