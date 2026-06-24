@@ -91,16 +91,15 @@ if timezone and name and time_to_eat:
         st.audio(audio_buffer, format='audio/mp3', autoplay=True)
 
         if result == "Did Not Eat":
-            try:
-                # Corrected parameter cases
-                text_to_speak = f"Please eat your medicine {patient_name}. It is {time_to_eat}."
+            # Corrected parameter cases
+            text_to_speak = f"Please eat your medicine {patient_name}. It is {time_to_eat}."
 
-                # Fix: Generate the audio stream buffer using gTTS so st.audio doesn't crash
-                tts = gTTS(text=text_to_speak, lang='en')
-                audio_buffer = BytesIO()
-                tts.write_to_fp(audio_buffer)
-                audio_buffer.seek(0)
-                st.audio(audio_buffer, format='audio/mp3', autoplay=True)
+            # Fix: Generate the audio stream buffer using gTTS so st.audio doesn't crash
+            tts = gTTS(text=text_to_speak, lang='en')
+            audio_buffer = BytesIO()
+            tts.write_to_fp(audio_buffer)
+            audio_buffer.seek(0)
+            st.audio(audio_buffer, format='audio/mp3', autoplay=True)
 
         else:
             if platform.system() == "Windows":
